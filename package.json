@@ -1,0 +1,20 @@
+{
+  "name": "crm-scripts-upwork",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dayadam/crm-scripts-upwork.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dayadam/crm-scripts-upwork/issues"
+  },
+  "homepage": "https://github.com/dayadam/crm-scripts-upwork#readme"
+}
