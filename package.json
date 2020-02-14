@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/dayadam/crm-scripts-upwork#readme",
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
+    "puppeteer": "^2.1.1"
   }
 }
