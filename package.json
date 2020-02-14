@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/dayadam/crm-scripts-upwork/issues"
   },
-  "homepage": "https://github.com/dayadam/crm-scripts-upwork#readme"
+  "homepage": "https://github.com/dayadam/crm-scripts-upwork#readme",
+  "dependencies": {
+    "axios": "^0.19.2"
+  }
 }
