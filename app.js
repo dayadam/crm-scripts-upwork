@@ -5,25 +5,26 @@ const fs = require("fs");
 const csv = require("fast-csv");
 //const dataCSV = require("./data.csv");
 const moment = require("moment");
-
-const ws = fs.createWriteStream("./data.csv", { flags: "a" });
-
 function now() {
   return moment.utc().format();
 }
 //console.log(typeof(now()));
 //console.log(now());
+const dummyData = [
+  ["d", now()],
+  ["a1", now()],
+  ["b2", now()]
+];
 
+/* fs.createWriteStream("./data.csv", { flags: "a" }).on("data", (chunk) => {
+  console.log(`Received ${chunk.length} bytes of data.`);
+});
+ */
+
+//const ws = fs.createWriteStream("./data.csv", { flags: "a" });
 csv
-  .write(
-    [
-      ["d", now()],
-      ["a1", now()],
-      ["b2", now()]
-    ],
-    { includeEndRowDelimiter: true }
-  )
-  .pipe(ws);
+  .write(dummyData, { includeEndRowDelimiter: true })
+  .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //{ headers: ["phone number", "time created"], writeHeaders: false }
 
 async function crm() {
