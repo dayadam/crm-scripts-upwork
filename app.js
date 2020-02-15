@@ -91,7 +91,6 @@ async function ema() {
     "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
   await page.waitForSelector(leadStatusSubmitSelector);
   await page.click(leadStatusSubmitSelector);
-
   await browser.close();
 }
 
@@ -99,8 +98,7 @@ async function dial() {
   console.log("inside dial");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    headless: false,
-    ignoreHTTPSErrors: true
+    headless: false
   });
   const page = await browser.newPage();
   await page.authenticate({
@@ -119,6 +117,47 @@ async function dial() {
     "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > input";
   await page.waitForSelector(phoneDialSelector);
   await page.click(phoneDialSelector);
+  await page.keyboard.type("8088709637");
+  //click submit search
+  const phoneDialSubmitSelector =
+    "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(3) > input";
+  await page.waitForSelector(phoneDialSubmitSelector);
+  await Promise.all([
+    page.click(phoneDialSubmitSelector),
+    page.waitForNavigation()
+  ]);
+  //visit id
+  const idURL = await page.evaluate(() =>
+    document
+      .querySelector(
+        "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
+      )
+      .getAttribute("href")
+  );
+  console.log(idURL);
+  //go to id
+  await page.goto("https://tel.agentcrmlogin.com/dialer/EMA/vicidial/" + idURL);
+  //click on disposition editor
+  const disposSelector =
+    "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
+  await page.waitForSelector(disposSelector);
+  /* let selectVal = await page.evaluate(
+    () =>
+      document.querySelector(
+        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+      ).value
+  );
+  console.log(selectVal); */
+  //set disposition to no answer
+  await page.select(disposSelector, "N");
+  let selectVal = await page.evaluate(
+    () =>
+      document.querySelector(
+        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+      ).value
+  );
+  console.log(selectVal);
+  //click submit disposition edit
 
   await browser.close();
 }
