@@ -141,23 +141,30 @@ async function dial() {
   const disposSelector =
     "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
   await page.waitForSelector(disposSelector);
-  /* let selectVal = await page.evaluate(
+  const selectValInit = await page.evaluate(
     () =>
       document.querySelector(
         "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
       ).value
   );
-  console.log(selectVal); */
+  console.log(selectValInit);
   //set disposition to no answer
   await page.select(disposSelector, "N");
-  let selectVal = await page.evaluate(
+  const selectValNew = await page.evaluate(
     () =>
       document.querySelector(
         "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
       ).value
   );
-  console.log(selectVal);
+  console.log(selectValNew);
   //click submit disposition edit
+  const submitDisposSelector =
+    "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(50) > td > input";
+  await page.waitForSelector(submitDisposSelector);
+  await Promise.all([
+    page.click(submitDisposSelector),
+    page.waitForNavigation()
+  ]);
 
   await browser.close();
 }
