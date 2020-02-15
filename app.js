@@ -1,6 +1,6 @@
-//const axios = require("axios");
 require("dotenv").config();
 const puppeteer = require("puppeteer");
+
 async function ema() {
   console.log("inside async");
   const browser = await puppeteer.launch({
@@ -8,7 +8,6 @@ async function ema() {
     headless: false
   });
   const page = await browser.newPage();
-  //const encodedSearch = encodeURI(searchTerm);
   await page.goto(`https://ema.agentcrmlogin.com/index.php`);
   await page.setViewport({ width: 1000, height: 821 });
   //logging in
@@ -95,71 +94,34 @@ async function ema() {
 
   await browser.close();
 }
+
 async function dial() {
   console.log("inside dial");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false,
-    //devtools: true,
     ignoreHTTPSErrors: true
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 1000, height: 821 });
-  /*   await page.setExtraHTTPHeaders({
-    data: `{username: ${process.env.DIAL_USERNAME}, password: ${process.env.DIAL_PASSWORD}}`
-  }); */
   await page.authenticate({
     username: process.env.DIAL_USERNAME,
     password: process.env.DIAL_PASSWORD
   });
   await page
-    .goto(`https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin.php`)
+    .goto(
+      `https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin_search_lead.php`
+    )
     .catch(err => {
       console.log(err);
-      /*       async function here() {
-        await page.keyboard.type("No Answer");
-      }
-      here(); */
-      /*       page.on("dialog", async dialog => {
-        console.log(dialog.type());
-        await dialog.dismiss();
-        await browser.close();
-      }); */
     });
-
-  //window.onerror = stopError;
-  function stopError() {
-    return true;
-  }
-  //log in
-  /* const adminButtonSelector =
-    "body > div > div.card > div > div:nth-child(4) > center > a > button";
-  await page.waitForSelector(adminButtonSelector);
-  await Promise.all([page.click(adminButtonSelector), page.waitForNavigation()]); */
-  /*   await Promise.all([
-    page.on("dialog", dialog => {
-      dialog.accept(process.env.DIAL_USERNAME);
-    }),
-    page.waitForNavigation()
-  ]); */
-  /* page.on('dialog', async dialog => {
-    console.log(dialog.type());
-    await dialog.dismiss();
-    await browser.close();
-  }); */
+  //click phone number input
+  const phoneDialSelector =
+    "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > input";
+  await page.waitForSelector(phoneDialSelector);
+  await page.click(phoneDialSelector);
 
   await browser.close();
 }
+
 //ema();
 dial();
-/* axios.get(`https://jooble.org/api/${joobleKey}`, {
-    keywords: req.body.keywords,
-    location: req.body.location,
-    radius: req.body.radius,
-    page: "1",
-    searchMode: "1"
-  })
-  .then(function(response) {
-    console.log(response.data);
-  })
-  .catch(err => console.log(err)); */
