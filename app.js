@@ -2,7 +2,7 @@ require("dotenv").config();
 const puppeteer = require("puppeteer");
 
 async function ema() {
-  console.log("inside async");
+  console.log("inside ema");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false
@@ -165,7 +165,6 @@ async function dial() {
     page.click(submitDisposSelector),
     page.waitForNavigation()
   ]);
-
   await browser.close();
 }
 
