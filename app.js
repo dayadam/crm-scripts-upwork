@@ -6,11 +6,11 @@ const csv = require("fast-csv");
 //const dataCSV = require("./data.csv");
 const moment = require("moment");
 
-const ws = fs.createWriteStream("./data.csv");
+const ws = fs.createWriteStream("./data.csv", { flags: "a" });
 
 function now() {
   return moment.utc().format();
-};
+}
 //console.log(typeof(now()));
 //console.log(now());
 
@@ -19,15 +19,12 @@ csv
     [
       ["d", now()],
       ["a1", now()],
-      ["a2", now()],
-      ["d", now()],
-      ["a1", now()],
-      ["a2", now()],
-      ["d", now()]
+      ["b2", now()]
     ],
-    { headers: ["phone number", "time created"] }
+    { includeEndRowDelimiter: true }
   )
   .pipe(ws);
+//{ headers: ["phone number", "time created"], writeHeaders: false }
 
 async function crm() {
   console.log("inside crm");
