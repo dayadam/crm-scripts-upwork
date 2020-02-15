@@ -100,20 +100,46 @@ async function dial() {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false
+    //ignoreHTTPSErrors: true
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1000, height: 821 });
-  await page.goto(
-    `https://tel.agentcrmlogin.com/dialer/EMA/vicidial/welcome.php`
-  );
+  await page
+    .goto(`https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin.php`)
+    .catch(err => {
+      //console.log(err);
+      async function here() {
+        await page.keyboard.type("No Answer");
+      }
+      here();
+      /*       page.on("dialog", async dialog => {
+        console.log(dialog.type());
+        await dialog.dismiss();
+        await browser.close();
+      }); */
+    });
+
+  //window.onerror = stopError;
+  function stopError() {
+    return true;
+  }
+
   //log in
-  const adminButtonSelector =
+  /* const adminButtonSelector =
     "body > div > div.card > div > div:nth-child(4) > center > a > button";
   await page.waitForSelector(adminButtonSelector);
-  await page.click(adminButtonSelector);
-  await page.on('dialog', dialog => {
-    dialog.accept("yes");
-  });
+  await Promise.all([page.click(adminButtonSelector), page.waitForNavigation()]); */
+  /*   await Promise.all([
+    page.on("dialog", dialog => {
+      dialog.accept(process.env.DIAL_USERNAME);
+    }),
+    page.waitForNavigation()
+  ]); */
+  /* page.on('dialog', async dialog => {
+    console.log(dialog.type());
+    await dialog.dismiss();
+    await browser.close();
+  }); */
 
   await browser.close();
 }
