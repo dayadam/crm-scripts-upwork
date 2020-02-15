@@ -99,19 +99,27 @@ async function dial() {
   console.log("inside dial");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    headless: false
-    //ignoreHTTPSErrors: true
+    headless: false,
+    //devtools: true,
+    ignoreHTTPSErrors: true
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1000, height: 821 });
+  /*   await page.setExtraHTTPHeaders({
+    data: `{username: ${process.env.DIAL_USERNAME}, password: ${process.env.DIAL_PASSWORD}}`
+  }); */
+  await page.authenticate({
+    username: process.env.DIAL_USERNAME,
+    password: process.env.DIAL_PASSWORD
+  });
   await page
     .goto(`https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin.php`)
     .catch(err => {
-      //console.log(err);
-      async function here() {
+      console.log(err);
+      /*       async function here() {
         await page.keyboard.type("No Answer");
       }
-      here();
+      here(); */
       /*       page.on("dialog", async dialog => {
         console.log(dialog.type());
         await dialog.dismiss();
@@ -123,7 +131,6 @@ async function dial() {
   function stopError() {
     return true;
   }
-
   //log in
   /* const adminButtonSelector =
     "body > div > div.card > div > div:nth-child(4) > center > a > button";
