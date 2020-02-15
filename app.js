@@ -1,8 +1,36 @@
 require("dotenv").config();
 const puppeteer = require("puppeteer");
+const fs = require("fs");
+//const path = require("path");
+const csv = require("fast-csv");
+//const dataCSV = require("./data.csv");
+const moment = require("moment");
 
-async function ema() {
-  console.log("inside ema");
+const ws = fs.createWriteStream("./data.csv");
+
+function now() {
+  return moment.utc().format();
+};
+//console.log(typeof(now()));
+//console.log(now());
+
+csv
+  .write(
+    [
+      ["d", now()],
+      ["a1", now()],
+      ["a2", now()],
+      ["d", now()],
+      ["a1", now()],
+      ["a2", now()],
+      ["d", now()]
+    ],
+    { headers: ["phone number", "time created"] }
+  )
+  .pipe(ws);
+
+async function crm() {
+  console.log("inside crm");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false
@@ -40,6 +68,7 @@ async function ema() {
     "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
   await page.goto(leadsURL);
   //click "?" to get total entries
+  //sometimes messes up, tries to get the value of the clicked "?" before rendered, not sure if setTimeout() is working or needs to be a Promise
   /* const totalEntriesHTML = "#listview-actions > div > div:nth-child(3) > div > span > span.totalNumberOfRecords.cursorPointer";
   await page.waitForSelector(totalEntriesHTML);
   await Promise.all([page.click(totalEntriesHTML)]);
@@ -168,5 +197,5 @@ async function dial() {
   await browser.close();
 }
 
-//ema();
-dial();
+//crm();
+//dial();
