@@ -215,6 +215,10 @@ async function crm() {
 
     const disposSelector = "#field_Leads_leadstatus";
     await page.waitForSelector(disposSelector);
+    const selectValInit = await page.evaluate(
+      () => document.querySelector("#field_Leads_leadstatus").value
+    );
+    console.log(selectValInit);
     await page.select(disposSelector, "No Answer");
     const selectValNew = await page.evaluate(
       () => document.querySelector("#field_Leads_leadstatus").value
@@ -222,10 +226,17 @@ async function crm() {
     console.log(selectValNew);
 
     //submit change
-    const leadStatusSubmitSelector =
+    await page.evaluate(() => {
+      document
+        .querySelector(
+          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i"
+        )
+        .click();
+    });
+    /* const leadStatusSubmitSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
     await page.waitForSelector(leadStatusSubmitSelector);
-    await page.click(leadStatusSubmitSelector);
+    await page.click(leadStatusSubmitSelector); */
     return new Promise((resolve, reject) => {
       checkLead().then(function(recordURL) {
         if (recordURL) {
