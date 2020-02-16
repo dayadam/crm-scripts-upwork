@@ -1,31 +1,40 @@
-require("dotenv").config();
+//client is unaware or unable to access any APIs to get CRM and Dial to communicate with each other so puppeteer is used
+//puppeteer is ran headful because I've found that Chrome needs GPU to operate properly
+//one option for web deployment could be a docker container for puppeteer operations
+
+//since we're running locally for easier use/deployment,
+//I avoided using a database / server for easier user configuration
+//instead, I use a csv to log records operated on, but this is mostly
+//to prevent any data loss during testing and development
+
+require("dotenv").config(); //.env should contain login info
 const puppeteer = require("puppeteer");
 const fs = require("fs");
-//const path = require("path");
 const csv = require("fast-csv");
-//const dataCSV = require("./data.csv");
 const moment = require("moment");
 function now() {
   return moment.utc().format();
 }
-//console.log(typeof(now()));
-//console.log(now());
-const dummyData = [
-  ["d", now()],
-  ["a1", now()],
-  ["b2", now()]
-];
 
+//=====***** APP START *****=====
+//boolean to switch either to ascending or descending (based on last name) search results
+//seems like dB isn't updating as fast as script can run, trying to debug that problem
 let acsOrDesc = true;
 
-//let recordURL;
-
+//save phone number to csv to prevent any data loss during testing and development
+//start a new row with time upon running script to easily see where scripts began
 //const ws = fs.createWriteStream("./data.csv", { flags: "a" });
 csv
   .write([["new run", now()]], { includeEndRowDelimiter: true })
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //{ headers: ["phone number", "time created"], writeHeaders: false }
 
+//crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
+crm();
+//dial();
+//=====***** APP END *****=====
+
+//script to edit status and save phone number in CRM
 async function crm() {
   console.log("inside crm");
   const browser = await puppeteer.launch({
@@ -35,40 +44,45 @@ async function crm() {
   const page = await browser.newPage();
   await page.goto(`https://ema.agentcrmlogin.com/index.php`);
   await page.setViewport({ width: 1000, height: 821 });
-  //logging in
+  //===log in===
+  //placeholders need to be deleted before username and password input
   //username
   const userInputForm =
     "#loginFormDiv > form > div:nth-child(4) > div > .form-control";
-  const userInputValue = await page.$eval(userInputForm, el => el.value);
+  const userInputPlaceholder = await page.$eval(userInputForm, el => el.value);
   await page.waitForSelector(userInputForm);
   await page.click(userInputForm);
-  for (let i = 0; i < userInputValue.length; i++) {
+  for (let i = 0; i < userInputPlaceholder.length; i++) {
     await page.keyboard.press("Backspace");
   }
   await page.keyboard.type(process.env.EMA_USERNAME);
   //password
   const passwInputForm =
     "#loginFormDiv > form > div:nth-child(5) > div > .form-control";
-  const passwInputValue = await page.$eval(passwInputForm, el => el.value);
+  const passwInputPlaceholder = await page.$eval(
+    passwInputForm,
+    el => el.value
+  );
   await page.waitForSelector(passwInputForm);
   await page.click(passwInputForm);
-  for (let i = 0; i < passwInputValue.length; i++) {
+  for (let i = 0; i < passwInputPlaceholder.length; i++) {
     await page.keyboard.press("Backspace");
   }
   await page.keyboard.type(process.env.EMA_PASSWORD);
-  //login
+  //submit login
   const submitLogIn = "#loginFormDiv > form > div:nth-child(6) > button";
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
-  //return { browser: browser, page: page };
+  //===log in finished===
 
-  //const pupOptions = crm();
-
+  //function to check if lead exists based on search criteria and get its url if it does
   async function checkLead() {
     console.log("running check");
     //navigate to leads
-    /* const leadsURL =
-    "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22phone%22%2C%22c%22%2C%22888888%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag="; */
+    /* //bad search url for testing
+    const leadsURL =
+    "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22phone%22%2C%22c%22%2C%22888888%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
+    // */
     //switch between URL's because it takes a second for the database to update and display new lead status
     const leadsURLASC =
       "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=lastname&sortorder=ASC&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
@@ -91,7 +105,8 @@ async function crm() {
   const totalEntires = parseInt(pageTotalEntiresArray[4]);
   console.log(totalEntires); */
     //get record url
-    /* await page.evaluate(() => {
+    /* //re-click search button
+    await page.evaluate(() => {
       document
         .querySelector(
           "#listViewContent > div.col-sm-12.col-xs-12 > div.floatThead-wrapper > div.floatThead-floatContainer.floatThead-container > table > thead > tr.searchRow > th.inline-search-btn > div > button"
@@ -124,80 +139,40 @@ async function crm() {
     });
 
     if (recordURL) {
-      
     }
-
-
 
     const recordURL = await page.evaluate(() => {
       let counter = 1;
+      //check if row exists based on search conditions
+      //force existence of row into boolean (concerned about if falsey (undefined))
       const element = !!document.getElementById(
         `Leads_listView_row_${counter}`
       );
+      //if row exists, return that row's url ending of that record so recordURL = that url ending
       if (element) {
         return document
           .getElementById(`Leads_listView_row_${counter}`)
           .getAttribute("data-recordurl");
       } else {
+        //else, return false and recordURL will be set to false
         return element;
       }
     });
     console.log(recordURL);
+    //checkLead() returns a Promise that resolves to recordURL
+    //recordURL will either be the url ending of the record if it exists or false is it doesn't
     return new Promise((resolve, reject) => {
       console.log(recordURL);
       resolve(recordURL);
     });
-    /* if (!recordURL) {
-      console.log("no search results");
-      //exists out of crm async function is no search results based on filter
-      return await browser.close();
-    }
-    console.log(recordURL); */
   }
 
   const recordURL = await checkLead();
-
   if (recordURL) {
     await runLogic(recordURL);
   }
 
-  /* let check = new Promise((resolve, reject) => {
-    resolve(checkLead());
-  });
-
-  let run = new Promise((resolve, reject) => {
-    resolve(runLogic());
-  }); */
-
-  /* await check;
-
-  if (recordURL) {
-    await run;
-  } */
-
-  /* check.then(function(resolved) {
-    if (recordURL) {
-      runLogic();
-    }
-  }); */
-  await browser.close();
-
-  /* if (recordURL === false) {
-    console.log("no search results");
-    //exists out of crm async function is no search results based on filter
-    return await browser.close();
-  } else if (runLogic() === "logic ran") {
-    console.log("no search results");
-    //exists out of crm async function is no search results based on filter
-    return await browser.close();
-  }
-
-  if (runLogic() === "logic ran") {
-    console.log("logic ran");
-    //exists out of crm async function is no search results based on filter
-    return await browser.close();
-  } */
-
+  //recursive function to change lead status
   async function runLogic(recordURL) {
     console.log("running logic");
     //go to record
@@ -207,26 +182,15 @@ async function crm() {
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(4) > td.fieldValue > div > span.value.textOverflowEllipsis > a";
     await page.waitForSelector(phoneNumberSelector);
     let phoneNumber = await page.$eval(phoneNumberSelector, el => el.innerText);
+    //get last 10 digits to ignore country codes (or lack thereof)
     phoneNumber = phoneNumber.slice(-10);
     console.log(phoneNumber);
+    //save phone number to csv to prevent any data loss during testing and development
     csv
       .write([[phoneNumber, now()]], { includeEndRowDelimiter: true })
       .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
-    //change lead status
-    //have to click next to lead status first in order to get editor to appear
-    /* const leadStatusTextSelector =
-      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.value.textOverflowEllipsis > span";
-    await page.waitForSelector(leadStatusTextSelector);
-    await page.click(leadStatusTextSelector); */
-    //mouse mouse to area
-    /* await page.mouse.move(0, 0);
-    await page.mouse.move(51, 0);
-    await page.mouse.down();
-    await page.mouse.up(); */
-    //click edit
-    const leadStatusSelector =
-      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
-    //await page.waitForSelector(leadStatusSelector, {visible: true});
+    //===change lead status===
+    //click edit lead status button, hidden so must evaluate
     await page.evaluate(() => {
       document
         .querySelector(
@@ -234,19 +198,7 @@ async function crm() {
         )
         .click();
     });
-    //await page.click(leadStatusSelector);
-    /* //click drop down
-    const leadStatusDropdownSelector = "#s2id_field_Leads_leadstatus";
-    await page.waitForSelector(leadStatusDropdownSelector);
-    await page.click(leadStatusDropdownSelector);
-    // click input
-    const leadStatusInputSelector = "#select2-drop > div > input";
-    await page.waitForSelector(leadStatusInputSelector);
-    await page.click(leadStatusInputSelector);
-    //type "no answer"
-    await page.keyboard.type("No Answer");
-    await page.keyboard.press("Enter"); */
-
+    //change lead status select field to "no answer"
     const disposSelector = "#field_Leads_leadstatus";
     await page.waitForSelector(disposSelector);
     const selectValInit = await page.evaluate(
@@ -258,8 +210,7 @@ async function crm() {
       () => document.querySelector("#field_Leads_leadstatus").value
     );
     console.log(selectValNew);
-
-    //submit change
+    //submit change to lead status field
     await page.evaluate(() => {
       document
         .querySelector(
@@ -267,12 +218,11 @@ async function crm() {
         )
         .click();
     });
-    /* const leadStatusSubmitSelector =
-      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
-    await page.waitForSelector(leadStatusSubmitSelector);
-    await page.click(leadStatusSubmitSelector); */
+    //===end change lead status===
     return new Promise((resolve, reject) => {
+      //after lead status has been changed, go back to search page and check to see if there's still leads that need changing
       checkLead().then(function(recordURL) {
+        //if leads need changing, recursively run logic to change lead status again
         if (recordURL) {
           runLogic(recordURL);
         } else resolve(recordURL);
@@ -280,9 +230,10 @@ async function crm() {
     });
   }
 
-  //await browser.close();
+  await browser.close();
 }
 
+//script to edit status in dialer
 async function dial() {
   console.log("inside dial");
   const browser = await puppeteer.launch({
@@ -290,6 +241,7 @@ async function dial() {
     headless: false
   });
   const page = await browser.newPage();
+  //login not DOM element, need page.authenticate()
   await page.authenticate({
     username: process.env.DIAL_USERNAME,
     password: process.env.DIAL_PASSWORD
@@ -356,6 +308,3 @@ async function dial() {
   ]);
   await browser.close();
 }
-
-crm();
-//dial();
