@@ -175,13 +175,15 @@ async function crm() {
     //click edit
     const leadStatusSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
-    //await page.waitForSelector(leadStatusSelector);
+    //await page.waitForSelector(leadStatusSelector, {visible: true});
     await page.evaluate(() => {
-      document.querySelector(
-        "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction"
-      ).style.display = "yes";
+      document
+        .querySelector(
+          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction"
+        )
+        .click();
     });
-    await page.click(leadStatusSelector);
+    //await page.click(leadStatusSelector);
     //click drop down
     const leadStatusDropdownSelector = "#s2id_field_Leads_leadstatus";
     await page.waitForSelector(leadStatusDropdownSelector);
