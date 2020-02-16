@@ -36,6 +36,7 @@ crm();
 
 //script to edit status and save phone number in CRM
 async function crm() {
+  //=====***** CRM() LOGIC START *****=====
   console.log("inside crm");
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -74,6 +75,18 @@ async function crm() {
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
   //===log in finished===
+  //recordURL will either be the url of the record based on search results
+  //or false if it doesn't exist
+  const recordURL = await checkLead();
+  //if recordURL exists, run change lead status logic on it
+  if (recordURL) {
+    //runLogic()'s Promise will recursively resolve to false when checkLead() resolves to false
+    //recursively changes lead status --> checks search results --> changes lead status ...etc
+    await runLogic(recordURL);
+  }
+  //else close browser
+  await browser.close();
+  //=====***** CRM() LOGIC END *****=====
 
   //function to check if lead exists based on search criteria and get its url if it does
   async function checkLead() {
@@ -167,11 +180,6 @@ async function crm() {
     });
   }
 
-  const recordURL = await checkLead();
-  if (recordURL) {
-    await runLogic(recordURL);
-  }
-
   //recursive function to change lead status
   async function runLogic(recordURL) {
     console.log("running logic");
@@ -225,12 +233,11 @@ async function crm() {
         //if leads need changing, recursively run logic to change lead status again
         if (recordURL) {
           runLogic(recordURL);
+          //else resolve to false and exit crm()
         } else resolve(recordURL);
       });
     });
   }
-
-  await browser.close();
 }
 
 //script to edit status in dialer
