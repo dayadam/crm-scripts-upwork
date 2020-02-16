@@ -16,7 +16,7 @@ const dummyData = [
   ["b2", now()]
 ];
 
-let recordURL;
+//let recordURL;
 
 //const ws = fs.createWriteStream("./data.csv", { flags: "a" });
 csv
@@ -101,8 +101,12 @@ async function crm() {
     }
     console.log(recordURL); */
   }
-  
-  await checkLead();
+
+  const recordURL = await checkLead();
+
+  if (recordURL) {
+    await runLogic();
+  }
 
   /* let check = new Promise((resolve, reject) => {
     resolve(checkLead());
@@ -124,8 +128,6 @@ async function crm() {
     }
   }); */
   await browser.close();
-
-  
 
   /* if (recordURL === false) {
     console.log("no search results");
@@ -181,10 +183,13 @@ async function crm() {
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
     await page.waitForSelector(leadStatusSubmitSelector);
     await page.click(leadStatusSubmitSelector);
-    await check;
-    if (recordURL) {
-      await run;
-    }
+    return new Promise((resolve, reject) => {
+      checkLead().then(function(recordURL) {
+        if (recordURL) {
+          runLogic();
+        } else resolve(recordURL);
+      });
+    });
   }
 
   //await browser.close();
