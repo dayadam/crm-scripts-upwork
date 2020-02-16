@@ -108,10 +108,8 @@ async function crm() {
   await check;
 
   if (recordURL) {
-    runLogic();
-  };
-
-
+    await run;
+  }
 
   /* check.then(function(resolved) {
     if (recordURL) {
@@ -174,11 +172,10 @@ async function crm() {
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
     await page.waitForSelector(leadStatusSubmitSelector);
     await page.click(leadStatusSubmitSelector);
-    check.then(function(resolved) {
-      if (recordURL) {
-        runLogic();
-      }
-    });
+    await check;
+    if (recordURL) {
+      await run;
+    }
   }
 
   //await browser.close();
