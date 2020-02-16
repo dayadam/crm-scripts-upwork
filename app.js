@@ -76,14 +76,14 @@ async function crm() {
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
   //===log in finished===
   const phoneNumberArray = [];
-  //recordURL will either be the url of the record based on search results
+  //record will either be the url and phone of the record based on search results
   //or false if it doesn't exist
-  const recordURL = await checkLead();
-  //if recordURL exists, run change lead status logic on it
-  if (recordURL) {
+  const record = await checkLead();
+  //if record exists, run change lead status logic on it
+  if (record) {
     //runLogic()'s Promise will recursively resolve to false when checkLead() resolves to false
     //recursively changes lead status --> checks search results --> changes lead status ...etc
-    await runLogic(recordURL);
+    await runLogic(record);
   }
   //else close browser
   await browser.close();
@@ -132,7 +132,7 @@ async function crm() {
       //check if row exists based on search conditions
       //force existence of row into boolean (concerned about if falsey (undefined))
       const element = !!document.getElementById(`Leads_listView_row_1`);
-      //if row exists, return that row's url ending of that record so recordURL = that url ending
+      //if row exists, return that row's url ending of that record so record.URL = that url ending
       if (element) {
         const URL = document
           .getElementById(`Leads_listView_row_1`)
@@ -145,13 +145,17 @@ async function crm() {
           .slice(-10);
         return { URL: URL, phoneNumber: phoneNumber };
       } else {
-        //else, return false and recordURL will be set to false
+        //else, return false and record will be set to false
         return element;
       }
     });
+    console.log("line 152");
+    console.log(record);
 
     let counter = 2;
     while (record && phoneNumberArray.includes(record.phoneNumber)) {
+      console.log("line 157");
+      console.log(record);
       record = await page.evaluate(
         counter => {
           //check if row exists based on search conditions
@@ -159,7 +163,7 @@ async function crm() {
           const element = !!document.getElementById(
             `Leads_listView_row_${counter}`
           );
-          //if row exists, return that row's url ending of that record so recordURL = that url ending
+          //if row exists, return that row's url ending of that record so record.URL = that url ending
           if (element) {
             const URL = document
               .getElementById(`Leads_listView_row_${counter}`)
@@ -173,7 +177,7 @@ async function crm() {
             counter++;
             return { URL: URL, phoneNumber: phoneNumber };
           } else {
-            //else, return false and recordURL will be set to false
+            //else, return false and record will be set to false
             return element;
           }
         },
@@ -182,20 +186,22 @@ async function crm() {
       );
     }
 
-    console.log(recordURL);
-    //checkLead() returns a Promise that resolves to recordURL
-    //recordURL will either be the url ending of the record if it exists or false is it doesn't
+    console.log("line 188");
+    console.log(record);
+    //checkLead() returns a Promise that resolves to record
+    //record will either be the url ending and phone # of the record if it exists or false is it doesn't
     return new Promise((resolve, reject) => {
-      console.log(recordURL);
-      resolve(recordURL);
+      console.log("line 194");
+      console.log(record);
+      resolve(record);
     });
   }
 
   //recursive function to change lead status
-  async function runLogic(recordURL) {
+  async function runLogic(record) {
     console.log("running logic");
     //go to record
-    await page.goto("https://ema.agentcrmlogin.com/" + recordURL);
+    await page.goto("https://ema.agentcrmlogin.com/" + record.URL);
     //get phone number
     const phoneNumberSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(4) > td.fieldValue > div > span.value.textOverflowEllipsis > a";
@@ -241,12 +247,12 @@ async function crm() {
     //===end change lead status===
     return new Promise((resolve, reject) => {
       //after lead status has been changed, go back to search page and check to see if there's still leads that need changing
-      checkLead().then(function(recordURL) {
+      checkLead().then(function(record) {
         //if leads need changing, recursively run logic to change lead status again
-        if (recordURL) {
-          runLogic(recordURL);
+        if (record) {
+          runLogic(record);
           //else resolve to false and exit crm()
-        } else resolve(recordURL);
+        } else resolve(record);
       });
     });
   }
