@@ -98,10 +98,42 @@ async function crm() {
         )
         .click();
     }); */
-    
+
     const recordURL = await page.evaluate(() => {
       let counter = 1;
-      const element = !!document.getElementById(`Leads_listView_row_${counter}`);
+      function checkIfRecordAlreadyExists(fs) {
+        fs.createReadStream("./data.csv")
+          .pipe(csv())
+          .on("data", function(data) {
+            console.log(data);
+            //return data;
+          });
+        //console.log(data);
+      }
+      checkIfRecordAlreadyExists(fs);
+      const element = !!document.getElementById(
+        `Leads_listView_row_${counter}`
+      );
+      if (element) {
+        return document
+          .getElementById(`Leads_listView_row_${counter}`)
+          .getAttribute("data-recordurl");
+      } else {
+        return element;
+      }
+    });
+
+    if (recordURL) {
+      
+    }
+
+
+
+    const recordURL = await page.evaluate(() => {
+      let counter = 1;
+      const element = !!document.getElementById(
+        `Leads_listView_row_${counter}`
+      );
       if (element) {
         return document
           .getElementById(`Leads_listView_row_${counter}`)
