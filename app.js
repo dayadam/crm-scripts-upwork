@@ -75,6 +75,7 @@ async function crm() {
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
   //===log in finished===
+  const phoneNumberArray = [];
   //recordURL will either be the url of the record based on search results
   //or false if it doesn't exist
   const recordURL = await checkLead();
@@ -127,52 +128,60 @@ async function crm() {
         .click();
     }); */
 
-
-    //get phone here???
-    const recordURL = await page.evaluate(() => {
-      let counter = 1;
-      function checkIfRecordAlreadyExists(fs) {
-        fs.createReadStream("./data.csv")
-          .pipe(csv())
-          .on("data", function(data) {
-            console.log(data);
-            //return data;
-          });
-        //console.log(data);
-      }
-      checkIfRecordAlreadyExists(fs);
-      const element = !!document.getElementById(
-        `Leads_listView_row_${counter}`
-      );
-      if (element) {
-        return document
-          .getElementById(`Leads_listView_row_${counter}`)
-          .getAttribute("data-recordurl");
-      } else {
-        return element;
-      }
-    });
-
-    if (recordURL) {
-    }
-
-    const recordURL = await page.evaluate(() => {
-      let counter = 1;
+    let record = await page.evaluate(() => {
       //check if row exists based on search conditions
       //force existence of row into boolean (concerned about if falsey (undefined))
-      const element = !!document.getElementById(
-        `Leads_listView_row_${counter}`
-      );
+      const element = !!document.getElementById(`Leads_listView_row_1`);
       //if row exists, return that row's url ending of that record so recordURL = that url ending
       if (element) {
-        return document
-          .getElementById(`Leads_listView_row_${counter}`)
+        const URL = document
+          .getElementById(`Leads_listView_row_1`)
           .getAttribute("data-recordurl");
+        const phoneNumber = document
+          .querySelector(
+            `#Leads_listView_row_1 > td:nth-child(8) > span.fieldValue > span`
+          )
+          .innerText.trim()
+          .slice(-10);
+        return { URL: URL, phoneNumber: phoneNumber };
       } else {
         //else, return false and recordURL will be set to false
         return element;
       }
     });
+
+    let counter = 2;
+    while (record && phoneNumberArray.includes(record.phoneNumber)) {
+      record = await page.evaluate(
+        counter => {
+          //check if row exists based on search conditions
+          //force existence of row into boolean (concerned about if falsey (undefined))
+          const element = !!document.getElementById(
+            `Leads_listView_row_${counter}`
+          );
+          //if row exists, return that row's url ending of that record so recordURL = that url ending
+          if (element) {
+            const URL = document
+              .getElementById(`Leads_listView_row_${counter}`)
+              .getAttribute("data-recordurl");
+            const phoneNumber = document
+              .querySelector(
+                `#Leads_listView_row_${counter} > td:nth-child(8) > span.fieldValue > span`
+              )
+              .innerText.trim()
+              .slice(-10);
+            counter++;
+            return { URL: URL, phoneNumber: phoneNumber };
+          } else {
+            //else, return false and recordURL will be set to false
+            return element;
+          }
+        },
+        counter,
+        record
+      );
+    }
+
     console.log(recordURL);
     //checkLead() returns a Promise that resolves to recordURL
     //recordURL will either be the url ending of the record if it exists or false is it doesn't
@@ -195,6 +204,7 @@ async function crm() {
     //get last 10 digits to ignore country codes (or lack thereof)
     phoneNumber = phoneNumber.slice(-10);
     console.log(phoneNumber);
+    phoneNumberArray.push(phoneNumber);
     //save phone number to csv to prevent any data loss during testing and development
     csv
       .write([[phoneNumber, now()]], { includeEndRowDelimiter: true })
