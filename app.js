@@ -81,6 +81,13 @@ async function crm() {
   const totalEntires = parseInt(pageTotalEntiresArray[4]);
   console.log(totalEntires); */
     //get record url
+    await page.evaluate(() => {
+      document
+        .querySelector(
+          "#listViewContent > div.col-sm-12.col-xs-12 > div.floatThead-wrapper > div.floatThead-floatContainer.floatThead-container > table > thead > tr.searchRow > th.inline-search-btn > div > button"
+        )
+        .click();
+    });
     const recordURL = await page.evaluate(() => {
       const element = !!document.getElementById("Leads_listView_row_1");
       if (element) {
