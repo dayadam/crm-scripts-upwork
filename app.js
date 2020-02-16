@@ -76,10 +76,10 @@ async function crm() {
       "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=lastname&sortorder=DESC&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
     if (acsOrDesc) {
       await page.goto(leadsURLASC, { waitUntil: "load" });
-    } else {
+    } /* else {
       await page.goto(leadsURLDESC, { waitUntil: "load" });
     }
-    acsOrDesc = !acsOrDesc;
+    acsOrDesc = !acsOrDesc; */
     //click "?" to get total entries
     //sometimes messes up, tries to get the value of the clicked "?" before rendered, not sure if setTimeout() is working or needs to be a Promise
     /* const totalEntriesHTML = "#listview-actions > div > div:nth-child(3) > div > span > span.totalNumberOfRecords.cursorPointer";
@@ -98,11 +98,13 @@ async function crm() {
         )
         .click();
     }); */
+    
     const recordURL = await page.evaluate(() => {
-      const element = !!document.getElementById("Leads_listView_row_1");
+      let counter = 1;
+      const element = !!document.getElementById(`Leads_listView_row_${counter}`);
       if (element) {
         return document
-          .getElementById("Leads_listView_row_1")
+          .getElementById(`Leads_listView_row_${counter}`)
           .getAttribute("data-recordurl");
       } else {
         return element;
@@ -229,7 +231,7 @@ async function crm() {
     await page.evaluate(() => {
       document
         .querySelector(
-          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i"
+          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave"
         )
         .click();
     });
