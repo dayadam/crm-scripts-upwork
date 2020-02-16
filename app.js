@@ -163,19 +163,24 @@ async function crm() {
       .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
     //change lead status
     //have to click next to lead status first in order to get editor to appear
-    const leadStatusTextSelector =
+    /* const leadStatusTextSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.value.textOverflowEllipsis > span";
     await page.waitForSelector(leadStatusTextSelector);
-    await page.click(leadStatusTextSelector);
+    await page.click(leadStatusTextSelector); */
     //mouse mouse to area
-    await page.mouse.move(0, 0);
+    /* await page.mouse.move(0, 0);
     await page.mouse.move(51, 0);
-    /* await page.mouse.down();
+    await page.mouse.down();
     await page.mouse.up(); */
     //click edit
     const leadStatusSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
-    await page.waitForSelector(leadStatusSelector);
+    //await page.waitForSelector(leadStatusSelector);
+    await page.evaluate(() => {
+      document.querySelector(
+        "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction"
+      ).style.display = "yes";
+    });
     await page.click(leadStatusSelector);
     //click drop down
     const leadStatusDropdownSelector = "#s2id_field_Leads_leadstatus";
