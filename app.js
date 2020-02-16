@@ -127,6 +127,8 @@ async function crm() {
         .click();
     }); */
 
+
+    //get phone here???
     const recordURL = await page.evaluate(() => {
       let counter = 1;
       function checkIfRecordAlreadyExists(fs) {
