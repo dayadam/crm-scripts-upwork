@@ -152,19 +152,19 @@ async function crm() {
     console.log("line 152");
     console.log(record);
 
-    let counter = 2;
+    //let counter = 2;
     let loopRanOut = false;
-    async function loop(record, counter, loopRanOut) {
+    async function loop(record, loopRanOut) {
       const promises = [];
-      while (
-        !loopRanOut &&
-        record &&
-        phoneNumberArray.includes(record.phoneNumber)
+      for (
+        counter = 2;
+        counter < 50 && phoneNumberArray.includes(record.phoneNumber);
+        counter++
       ) {
         promises.push(
           new Promise((resolve, reject) => {
             page.evaluate(
-              (counter, record, loopRanOut) => {
+              (counter, record, loopRanOut, resolve) => {
                 console.log("line 158");
                 console.log(record);
                 //check if row exists based on search conditions
@@ -195,15 +195,17 @@ async function crm() {
               },
               counter,
               record,
-              loopRanOut
+              loopRanOut, resolve
             );
           })
         );
       }
-      return promises;
+      return await Promise.all(promises);
     }
 
-    await Promise.all(loop(record, counter, loopRanOut));
+    if (record && phoneNumberArray.includes(record.phoneNumber)) {
+      await loop(record, loopRanOut);
+    }
 
     //checkLead() returns a Promise that resolves to record
     //record will either be the url ending and phone # of the record if it exists or false is it doesn't
