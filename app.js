@@ -101,11 +101,23 @@ async function crm() {
     resolve(checkLead());
   });
 
-  check.then(function(resolved) {
+  let run = new Promise((resolve, reject) => {
+    resolve(runLogic());
+  });
+
+  await check;
+
+  if (recordURL) {
+    runLogic();
+  };
+
+
+
+  /* check.then(function(resolved) {
     if (recordURL) {
       runLogic();
     }
-  });
+  }); */
   await browser.close();
 
   /* if (recordURL === false) {
@@ -167,11 +179,6 @@ async function crm() {
         runLogic();
       }
     });
-    if (recordURL === false) {
-      return "logic ran";
-    } else {
-      runLogic();
-    }
   }
 
   //await browser.close();
