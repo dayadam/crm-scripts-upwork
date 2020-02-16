@@ -155,51 +155,55 @@ async function crm() {
     let counter = 2;
     let loopRanOut = false;
     async function loop(record, counter, loopRanOut) {
+      const promises = [];
       while (
         !loopRanOut &&
         record &&
         phoneNumberArray.includes(record.phoneNumber)
       ) {
-        await page.evaluate(
-          (counter, record, loopRanOut) => {
-            console.log("line 158");
-            console.log(record);
-            //check if row exists based on search conditions
-            //force existence of row into boolean (concerned about if falsey (undefined))
-            const element = !!document.getElementById(
-              `Leads_listView_row_${counter}`
+        promises.push(
+          new Promise((resolve, reject) => {
+            page.evaluate(
+              (counter, record, loopRanOut) => {
+                console.log("line 158");
+                console.log(record);
+                //check if row exists based on search conditions
+                //force existence of row into boolean (concerned about if falsey (undefined))
+                const element = !!document.getElementById(
+                  `Leads_listView_row_${counter}`
+                );
+                //if row exists, return that row's url ending of that record so record.URL = that url ending
+                if (element) {
+                  const URL = document
+                    .getElementById(`Leads_listView_row_${counter}`)
+                    .getAttribute("data-recordurl");
+                  const phoneNumber = document
+                    .querySelector(
+                      `#Leads_listView_row_${counter} > td:nth-child(8) > span.fieldValue > span`
+                    )
+                    .innerText.trim()
+                    .slice(-10);
+                  counter++;
+                  record.URL = URL;
+                  record.phoneNumber = phoneNumber;
+                  //return
+                  resolve(record);
+                } else {
+                  !loopRanOut;
+                  resolve(loopRanOut);
+                }
+              },
+              counter,
+              record,
+              loopRanOut
             );
-            //if row exists, return that row's url ending of that record so record.URL = that url ending
-            if (element) {
-              const URL = document
-                .getElementById(`Leads_listView_row_${counter}`)
-                .getAttribute("data-recordurl");
-              const phoneNumber = document
-                .querySelector(
-                  `#Leads_listView_row_${counter} > td:nth-child(8) > span.fieldValue > span`
-                )
-                .innerText.trim()
-                .slice(-10);
-              counter++;
-              record.URL = URL;
-              record.phoneNumber = phoneNumber;
-              //return
-            } else {
-              !loopRanOut;
-            }
-          },
-          counter,
-          record,
-          loopRanOut
+          })
         );
       }
-      return new Promise((resolve, reject) => {
-        console.log("line 197");
-        resolve(true);
-      });
+      return promises;
     }
 
-    await loop(record, counter, loopRanOut);
+    await Promise.all(loop(record, counter, loopRanOut));
 
     //checkLead() returns a Promise that resolves to record
     //record will either be the url ending and phone # of the record if it exists or false is it doesn't
