@@ -58,6 +58,9 @@ async function crm() {
   const submitLogIn = "#loginFormDiv > form > div:nth-child(6) > button";
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
+  //return { browser: browser, page: page };
+
+  //const pupOptions = crm();
 
   async function checkLead() {
     console.log("running check");
@@ -88,7 +91,9 @@ async function crm() {
         return element;
       }
     });
-    return recordURL;
+    return new Promise((resolve, reject) => {
+      resolve(recordURL);
+    });
     /* if (!recordURL) {
       console.log("no search results");
       //exists out of crm async function is no search results based on filter
@@ -96,20 +101,22 @@ async function crm() {
     }
     console.log(recordURL); */
   }
+  
+  await checkLead();
 
-  let check = new Promise((resolve, reject) => {
+  /* let check = new Promise((resolve, reject) => {
     resolve(checkLead());
   });
 
   let run = new Promise((resolve, reject) => {
     resolve(runLogic());
-  });
+  }); */
 
-  await check;
+  /* await check;
 
   if (recordURL) {
     await run;
-  }
+  } */
 
   /* check.then(function(resolved) {
     if (recordURL) {
@@ -117,6 +124,8 @@ async function crm() {
     }
   }); */
   await browser.close();
+
+  
 
   /* if (recordURL === false) {
     console.log("no search results");
@@ -255,5 +264,5 @@ async function dial() {
   await browser.close();
 }
 
-crm();
+//crm();
 //dial();
