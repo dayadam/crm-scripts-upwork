@@ -128,7 +128,7 @@ async function crm() {
         .click();
     }); */
 
-    let record = await page.evaluate(() => {
+    const record = await page.evaluate(() => {
       //check if row exists based on search conditions
       //force existence of row into boolean (concerned about if falsey (undefined))
       const element = !!document.getElementById(`Leads_listView_row_1`);
@@ -153,11 +153,16 @@ async function crm() {
     console.log(record);
 
     let counter = 2;
-    while (record && phoneNumberArray.includes(record.phoneNumber)) {
-      console.log("line 157");
-      console.log(record);
-      record = await page.evaluate(
-        counter => {
+    let loopRanOut = false;
+    while (
+      !loopRanOut &&
+      record &&
+      phoneNumberArray.includes(record.phoneNumber)
+    ) {
+      await page.evaluate(
+        (counter, record, loopRanOut) => {
+          console.log("line 158");
+          console.log(record);
           //check if row exists based on search conditions
           //force existence of row into boolean (concerned about if falsey (undefined))
           const element = !!document.getElementById(
@@ -175,14 +180,16 @@ async function crm() {
               .innerText.trim()
               .slice(-10);
             counter++;
-            return { URL: URL, phoneNumber: phoneNumber };
+            record.URL = URL;
+            record.phoneNumber = phoneNumber;
+            //return
           } else {
-            //else, return false and record will be set to false
-            return element;
+            loopRanOut = true;
           }
         },
         counter,
-        record
+        record,
+        loopRanOut
       );
     }
 
@@ -193,7 +200,11 @@ async function crm() {
     return new Promise((resolve, reject) => {
       console.log("line 194");
       console.log(record);
-      resolve(record);
+      if (loopRanOut) {
+        resolve(false);
+      } else {
+        resolve(record);
+      }
     });
   }
 
