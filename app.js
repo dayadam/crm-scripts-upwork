@@ -81,7 +81,7 @@ async function crm() {
   const totalEntires = parseInt(pageTotalEntiresArray[4]);
   console.log(totalEntires); */
     //get record url
-    recordURL = await page.evaluate(() => {
+    const recordURL = await page.evaluate(() => {
       const element = !!document.getElementById("Leads_listView_row_1");
       if (element) {
         return document
@@ -91,7 +91,9 @@ async function crm() {
         return element;
       }
     });
+    console.log(recordURL);
     return new Promise((resolve, reject) => {
+      console.log(recordURL);
       resolve(recordURL);
     });
     /* if (!recordURL) {
@@ -105,7 +107,7 @@ async function crm() {
   const recordURL = await checkLead();
 
   if (recordURL) {
-    await runLogic();
+    await runLogic(recordURL);
   }
 
   /* let check = new Promise((resolve, reject) => {
@@ -145,7 +147,7 @@ async function crm() {
     return await browser.close();
   } */
 
-  async function runLogic() {
+  async function runLogic(recordURL) {
     console.log("running logic");
     //go to record
     await page.goto("https://ema.agentcrmlogin.com/" + recordURL);
@@ -156,6 +158,9 @@ async function crm() {
     let phoneNumber = await page.$eval(phoneNumberSelector, el => el.innerText);
     phoneNumber = phoneNumber.slice(-10);
     console.log(phoneNumber);
+    csv
+      .write([[phoneNumber, now()]], { includeEndRowDelimiter: true })
+      .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
     //change lead status
     //have to click next to lead status first in order to get editor to appear
     const leadStatusTextSelector =
@@ -186,7 +191,7 @@ async function crm() {
     return new Promise((resolve, reject) => {
       checkLead().then(function(recordURL) {
         if (recordURL) {
-          runLogic();
+          runLogic(recordURL);
         } else resolve(recordURL);
       });
     });
@@ -269,5 +274,5 @@ async function dial() {
   await browser.close();
 }
 
-//crm();
+crm();
 //dial();
