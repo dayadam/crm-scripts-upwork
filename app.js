@@ -16,14 +16,11 @@ const dummyData = [
   ["b2", now()]
 ];
 
-/* fs.createWriteStream("./data.csv", { flags: "a" }).on("data", (chunk) => {
-  console.log(`Received ${chunk.length} bytes of data.`);
-});
- */
+let recordURL;
 
 //const ws = fs.createWriteStream("./data.csv", { flags: "a" });
 csv
-  .write(dummyData, { includeEndRowDelimiter: true })
+  .write([["new run", now()]], { includeEndRowDelimiter: true })
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //{ headers: ["phone number", "time created"], writeHeaders: false }
 
@@ -61,13 +58,18 @@ async function crm() {
   const submitLogIn = "#loginFormDiv > form > div:nth-child(6) > button";
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
-  //navigate to leads
-  const leadsURL =
-    "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
-  await page.goto(leadsURL);
-  //click "?" to get total entries
-  //sometimes messes up, tries to get the value of the clicked "?" before rendered, not sure if setTimeout() is working or needs to be a Promise
-  /* const totalEntriesHTML = "#listview-actions > div > div:nth-child(3) > div > span > span.totalNumberOfRecords.cursorPointer";
+
+  async function checkLead() {
+    console.log("running check");
+    //navigate to leads
+    /* const leadsURL =
+    "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22phone%22%2C%22c%22%2C%22888888%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag="; */
+    const leadsURL =
+      "https://ema.agentcrmlogin.com/index.php?module=Leads&parent=&page=1&view=List&viewname=1&orderby=&sortorder=&app=MARKETING&search_params=%5B%5B%5B%22leadstatus%22%2C%22e%22%2C%22Call+Back%22%5D%2C%5B%22assigned_user_id%22%2C%22c%22%2C%22Elite+Medicare+Advisors+%2CTeam+Selling%22%5D%5D%5D&tag_params=%5B%5D&nolistcache=0&list_headers=%5B%22createdtime%22%2C%22leadstatus%22%2C%22company%22%2C%22firstname%22%2C%22lastname%22%2C%22phone%22%2C%22email%22%2C%22code%22%2C%22cf_852%22%2C%22cf_1104%22%2C%22assigned_user_id%22%5D&tag=";
+    await page.goto(leadsURL);
+    //click "?" to get total entries
+    //sometimes messes up, tries to get the value of the clicked "?" before rendered, not sure if setTimeout() is working or needs to be a Promise
+    /* const totalEntriesHTML = "#listview-actions > div > div:nth-child(3) > div > span > span.totalNumberOfRecords.cursorPointer";
   await page.waitForSelector(totalEntriesHTML);
   await Promise.all([page.click(totalEntriesHTML)]);
   setTimeout(function(){}, 500);
@@ -75,50 +77,104 @@ async function crm() {
   const pageTotalEntiresArray = pageTotalEntires.split(" ");
   const totalEntires = parseInt(pageTotalEntiresArray[4]);
   console.log(totalEntires); */
-  //get record url
-  const recordURL = await page.evaluate(() =>
-    document
-      .getElementById("Leads_listView_row_1")
-      .getAttribute("data-recordurl")
-  );
-  console.log(recordURL);
-  //go to record
-  await page.goto("https://ema.agentcrmlogin.com/" + recordURL);
-  //get phone number
-  const phoneNumberSelector =
-    "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(4) > td.fieldValue > div > span.value.textOverflowEllipsis > a";
-  await page.waitForSelector(phoneNumberSelector);
-  let phoneNumber = await page.$eval(phoneNumberSelector, el => el.innerText);
-  phoneNumber = phoneNumber.slice(2);
-  console.log(phoneNumber);
-  //change lead status
-  //have to click next to lead status first in order to get editor to appear
-  const leadStatusTextSelector =
-    "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.value.textOverflowEllipsis > span";
-  await page.waitForSelector(leadStatusTextSelector);
-  await page.click(leadStatusTextSelector);
-  //click edit
-  const leadStatusSelector =
-    "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
-  await page.waitForSelector(leadStatusSelector);
-  await page.click(leadStatusSelector);
-  //click drop down
-  const leadStatusDropdownSelector = "#s2id_field_Leads_leadstatus";
-  await page.waitForSelector(leadStatusDropdownSelector);
-  await page.click(leadStatusDropdownSelector);
-  // click input
-  const leadStatusInputSelector = "#select2-drop > div > input";
-  await page.waitForSelector(leadStatusInputSelector);
-  await page.click(leadStatusInputSelector);
-  //type "no answer"
-  await page.keyboard.type("No Answer");
-  await page.keyboard.press("Enter");
-  //submit change
-  const leadStatusSubmitSelector =
-    "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
-  await page.waitForSelector(leadStatusSubmitSelector);
-  await page.click(leadStatusSubmitSelector);
+    //get record url
+    recordURL = await page.evaluate(() => {
+      const element = !!document.getElementById("Leads_listView_row_1");
+      if (element) {
+        return document
+          .getElementById("Leads_listView_row_1")
+          .getAttribute("data-recordurl");
+      } else {
+        return element;
+      }
+    });
+    return recordURL;
+    /* if (!recordURL) {
+      console.log("no search results");
+      //exists out of crm async function is no search results based on filter
+      return await browser.close();
+    }
+    console.log(recordURL); */
+  }
+
+  let check = new Promise((resolve, reject) => {
+    resolve(checkLead());
+  });
+
+  check.then(function(resolved) {
+    if (recordURL) {
+      runLogic();
+    }
+  });
   await browser.close();
+
+  /* if (recordURL === false) {
+    console.log("no search results");
+    //exists out of crm async function is no search results based on filter
+    return await browser.close();
+  } else if (runLogic() === "logic ran") {
+    console.log("no search results");
+    //exists out of crm async function is no search results based on filter
+    return await browser.close();
+  }
+
+  if (runLogic() === "logic ran") {
+    console.log("logic ran");
+    //exists out of crm async function is no search results based on filter
+    return await browser.close();
+  } */
+
+  async function runLogic() {
+    console.log("running logic");
+    //go to record
+    await page.goto("https://ema.agentcrmlogin.com/" + recordURL);
+    //get phone number
+    const phoneNumberSelector =
+      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(4) > td.fieldValue > div > span.value.textOverflowEllipsis > a";
+    await page.waitForSelector(phoneNumberSelector);
+    let phoneNumber = await page.$eval(phoneNumberSelector, el => el.innerText);
+    phoneNumber = phoneNumber.slice(-10);
+    console.log(phoneNumber);
+    //change lead status
+    //have to click next to lead status first in order to get editor to appear
+    const leadStatusTextSelector =
+      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.value.textOverflowEllipsis > span";
+    await page.waitForSelector(leadStatusTextSelector);
+    await page.click(leadStatusTextSelector);
+    //click edit
+    const leadStatusSelector =
+      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
+    await page.waitForSelector(leadStatusSelector);
+    await page.click(leadStatusSelector);
+    //click drop down
+    const leadStatusDropdownSelector = "#s2id_field_Leads_leadstatus";
+    await page.waitForSelector(leadStatusDropdownSelector);
+    await page.click(leadStatusDropdownSelector);
+    // click input
+    const leadStatusInputSelector = "#select2-drop > div > input";
+    await page.waitForSelector(leadStatusInputSelector);
+    await page.click(leadStatusInputSelector);
+    //type "no answer"
+    await page.keyboard.type("No Answer");
+    await page.keyboard.press("Enter");
+    //submit change
+    const leadStatusSubmitSelector =
+      "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave > i";
+    await page.waitForSelector(leadStatusSubmitSelector);
+    await page.click(leadStatusSubmitSelector);
+    check.then(function(resolved) {
+      if (recordURL) {
+        runLogic();
+      }
+    });
+    if (recordURL === false) {
+      return "logic ran";
+    } else {
+      runLogic();
+    }
+  }
+
+  //await browser.close();
 }
 
 async function dial() {
@@ -195,5 +251,5 @@ async function dial() {
   await browser.close();
 }
 
-//crm();
+crm();
 //dial();
