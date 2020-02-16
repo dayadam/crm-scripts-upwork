@@ -167,6 +167,11 @@ async function crm() {
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.value.textOverflowEllipsis > span";
     await page.waitForSelector(leadStatusTextSelector);
     await page.click(leadStatusTextSelector);
+    //mouse mouse to area
+    await page.mouse.move(0, 0);
+    await page.mouse.move(51, 0);
+    /* await page.mouse.down();
+    await page.mouse.up(); */
     //click edit
     const leadStatusSelector =
       "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction";
