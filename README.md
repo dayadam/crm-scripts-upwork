@@ -44,7 +44,7 @@ $ npm install
 
 > rename "env.txt" file to ".env"
 
-> Open the file, and replace "<CREDENTIALS>" (including angle brackets) with your correct credentials for the CRM and dialer. 
+> Open the file, and replace `<CREDENTIALS>` (including angle brackets) with your correct credentials for the CRM and dialer. 
 
 > run the application
 
