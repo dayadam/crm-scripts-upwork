@@ -22,7 +22,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-Node.js and express packages are required to run this application locally.  
+Node.js and moment, fast-csv, and puppeteer packages are required to run this application locally.  
 
 ## Installation
 
