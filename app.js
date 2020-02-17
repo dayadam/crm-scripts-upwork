@@ -389,46 +389,57 @@ async function dial(phoneNumberArray) {
       page.waitForNavigation()
     ]);
     //visit id
-    const idURL = await page.evaluate(() =>
-      document
-        .querySelector(
-          "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
-        )
-        .getAttribute("href")
-    );
+    const idURL = await page.evaluate(() => {
+      const element = !!document.querySelector(
+        "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
+      );
+      //if row exists, return that row's url ending of that record so record.URL = that url ending
+      if (element) {
+        return document
+          .querySelector(
+            "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
+          )
+          .getAttribute("href");
+      } else {
+        //else, return false and record will be set to false
+        return element;
+      }
+    });
     console.log(idURL);
-    //go to id
-    await page.goto(
-      "https://tel.agentcrmlogin.com/dialer/EMA/vicidial/" + idURL
-    );
-    //click on disposition editor
-    const disposSelector =
-      "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
-    await page.waitForSelector(disposSelector);
-    const selectValInit = await page.evaluate(
-      () =>
-        document.querySelector(
-          "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
-        ).value
-    );
-    console.log(selectValInit);
-    //set disposition to no answer
-    await page.select(disposSelector, "N");
-    const selectValNew = await page.evaluate(
-      () =>
-        document.querySelector(
-          "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
-        ).value
-    );
-    console.log(selectValNew);
-    //click submit disposition edit
-    const submitDisposSelector =
-      "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(50) > td > input";
-    await page.waitForSelector(submitDisposSelector);
-    await Promise.all([
-      page.click(submitDisposSelector),
-      page.waitForNavigation()
-    ]);
+    if (idURL) {
+      //go to id
+      await page.goto(
+        "https://tel.agentcrmlogin.com/dialer/EMA/vicidial/" + idURL
+      );
+      //click on disposition editor
+      const disposSelector =
+        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
+      await page.waitForSelector(disposSelector);
+      const selectValInit = await page.evaluate(
+        () =>
+          document.querySelector(
+            "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+          ).value
+      );
+      console.log(selectValInit);
+      //set disposition to no answer
+      await page.select(disposSelector, "N");
+      const selectValNew = await page.evaluate(
+        () =>
+          document.querySelector(
+            "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+          ).value
+      );
+      console.log(selectValNew);
+      //click submit disposition edit
+      const submitDisposSelector =
+        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(50) > td > input";
+      await page.waitForSelector(submitDisposSelector);
+      await Promise.all([
+        page.click(submitDisposSelector),
+        page.waitForNavigation()
+      ]);
+    }
   }
   await browser.close();
 }
