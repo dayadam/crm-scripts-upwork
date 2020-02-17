@@ -15,6 +15,15 @@ const moment = require("moment");
 function now() {
   return moment.utc().format();
 }
+function unique(ary) {
+  // concat() with no args is a way to clone an array
+  var u = ary.concat().sort();
+  for (var i = 1; i < u.length; ) {
+    if (u[i - 1] === u[i]) u.splice(i, 1);
+    else i++;
+  }
+  return u;
+}
 
 //=====***** APP START *****=====
 //boolean to switch either to ascending or descending (based on last name) search results
@@ -29,9 +38,36 @@ csv
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //{ headers: ["phone number", "time created"], writeHeaders: false }
 
+const phoneNumberArray = [
+  "8433124902",
+  "8433124902",
+  "8056463180",
+  "8056463180",
+  "3054459003",
+  "7159066521",
+  "9733751882",
+  "9712088527",
+  "3073473714",
+  "4344705361",
+  "9203330034",
+  "6317867912",
+  "2527567190",
+  "7737125257",
+  "3054077486",
+  "8133405212",
+  "6162931577",
+  "5158900420",
+  "4025782461",
+  "4047978090",
+  "4695956794",
+  "8053686953",
+  "5187283623",
+  "2406658918"
+];
+
 //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
-crm();
-//dial();
+//crm();
+dial(phoneNumberArray);
 //=====***** APP END *****=====
 
 //script to edit status and save phone number in CRM
@@ -75,7 +111,6 @@ async function crm() {
   await page.waitForSelector(submitLogIn);
   await Promise.all([page.click(submitLogIn), page.waitForNavigation()]);
   //===log in finished===
-  const phoneNumberArray = [];
   //record will either be the url and phone of the record based on search results
   //or false if it doesn't exist
   const record = await checkLead();
@@ -114,7 +149,6 @@ async function crm() {
     ];
     await page.goto(leadsURL[acsOrDesc], { waitUntil: "load" });
     acsOrDesc++;
-
     if (acsOrDesc === 11) {
       acsOrDesc = 0;
     } /* else {
@@ -318,8 +352,10 @@ async function crm() {
 }
 
 //script to edit status in dialer
-async function dial() {
+async function dial(phoneNumberArray) {
   console.log("inside dial");
+  const newPhoneNumberArray = unique(phoneNumberArray);
+  console.log(newPhoneNumberArray);
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false
@@ -330,65 +366,69 @@ async function dial() {
     username: process.env.DIAL_USERNAME,
     password: process.env.DIAL_PASSWORD
   });
-  await page
-    .goto(
-      `https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin_search_lead.php`
-    )
-    .catch(err => {
-      console.log(err);
-    });
-  //click phone number input
-  const phoneDialSelector =
-    "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > input";
-  await page.waitForSelector(phoneDialSelector);
-  await page.click(phoneDialSelector);
-  await page.keyboard.type("8088709637");
-  //click submit search
-  const phoneDialSubmitSelector =
-    "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(3) > input";
-  await page.waitForSelector(phoneDialSubmitSelector);
-  await Promise.all([
-    page.click(phoneDialSubmitSelector),
-    page.waitForNavigation()
-  ]);
-  //visit id
-  const idURL = await page.evaluate(() =>
-    document
-      .querySelector(
-        "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
+  for (i = 0; i < newPhoneNumberArray.length; i++) {
+    await page
+      .goto(
+        `https://tel.agentcrmlogin.com/dialer/EMA/vicidial/admin_search_lead.php`
       )
-      .getAttribute("href")
-  );
-  console.log(idURL);
-  //go to id
-  await page.goto("https://tel.agentcrmlogin.com/dialer/EMA/vicidial/" + idURL);
-  //click on disposition editor
-  const disposSelector =
-    "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
-  await page.waitForSelector(disposSelector);
-  const selectValInit = await page.evaluate(
-    () =>
-      document.querySelector(
-        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
-      ).value
-  );
-  console.log(selectValInit);
-  //set disposition to no answer
-  await page.select(disposSelector, "N");
-  const selectValNew = await page.evaluate(
-    () =>
-      document.querySelector(
-        "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
-      ).value
-  );
-  console.log(selectValNew);
-  //click submit disposition edit
-  const submitDisposSelector =
-    "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(50) > td > input";
-  await page.waitForSelector(submitDisposSelector);
-  await Promise.all([
-    page.click(submitDisposSelector),
-    page.waitForNavigation()
-  ]);
+      .catch(err => {
+        console.log(err);
+      });
+    //click phone number input
+    const phoneDialSelector =
+      "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > input";
+    await page.waitForSelector(phoneDialSelector);
+    await page.click(phoneDialSelector);
+    await page.keyboard.type(`${newPhoneNumberArray[i]}`);
+    //click submit search
+    const phoneDialSubmitSelector =
+      "body > center > div > font > section > div > div.row.clearfix > div > div > div > table > tbody > tr:nth-child(3) > td:nth-child(3) > input";
+    await page.waitForSelector(phoneDialSubmitSelector);
+    await Promise.all([
+      page.click(phoneDialSubmitSelector),
+      page.waitForNavigation()
+    ]);
+    //visit id
+    const idURL = await page.evaluate(() =>
+      document
+        .querySelector(
+          "body > center > div > font > table > tbody > tr:nth-child(2) > td:nth-child(2) > font > a"
+        )
+        .getAttribute("href")
+    );
+    console.log(idURL);
+    //go to id
+    await page.goto(
+      "https://tel.agentcrmlogin.com/dialer/EMA/vicidial/" + idURL
+    );
+    //click on disposition editor
+    const disposSelector =
+      "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select";
+    await page.waitForSelector(disposSelector);
+    const selectValInit = await page.evaluate(
+      () =>
+        document.querySelector(
+          "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+        ).value
+    );
+    console.log(selectValInit);
+    //set disposition to no answer
+    await page.select(disposSelector, "N");
+    const selectValNew = await page.evaluate(
+      () =>
+        document.querySelector(
+          "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(45) > td:nth-child(2) > div > select"
+        ).value
+    );
+    console.log(selectValNew);
+    //click submit disposition edit
+    const submitDisposSelector =
+      "body > center > section > div > div.row.clearfix > div > div > div > table:nth-child(1) > tbody > tr:nth-child(50) > td > input";
+    await page.waitForSelector(submitDisposSelector);
+    await Promise.all([
+      page.click(submitDisposSelector),
+      page.waitForNavigation()
+    ]);
+  }
   await browser.close();
 }
