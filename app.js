@@ -38,7 +38,7 @@ csv
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //{ headers: ["phone number", "time created"], writeHeaders: false }
 
-const phoneNumberArray = [
+/* const phoneNumberArray = [
   "8433124902",
   "8433124902",
   "8056463180",
@@ -63,11 +63,12 @@ const phoneNumberArray = [
   "8053686953",
   "5187283623",
   "2406658918"
-];
+]; */
+
+const phoneNumberArray = [];
 
 //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
-//crm();
-dial(phoneNumberArray);
+crm().then(res => dial(phoneNumberArray));
 //=====***** APP END *****=====
 
 //script to edit status and save phone number in CRM
@@ -122,6 +123,9 @@ async function crm() {
   }
   //else close browser
   await browser.close();
+  return new Promise((resolve, reject) => {
+    resolve(true);
+  });
   //=====***** CRM() LOGIC END *****=====
 
   //function to check if lead exists based on search criteria and get its url if it does
@@ -442,4 +446,7 @@ async function dial(phoneNumberArray) {
     }
   }
   await browser.close();
+  return new Promise((resolve, reject) => {
+    resolve(true);
+  });
 }
