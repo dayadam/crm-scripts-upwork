@@ -47,9 +47,9 @@ csv
 //crm().then(res => dial(phoneNumberArray));
 app.post("/api/run", function(req, res) {
   console.log(req.body);
-  res.json(req.body);
   //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
   crm(req).then(res => dial(phoneNumberArray));
+  res.json(req.body);
 });
 app.listen(PORT, function() {
   console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`);
@@ -154,7 +154,8 @@ async function crm(req) {
             record.phoneNumber = recordtemp.phoneNumber;
             resolve(record);
           } else {
-            reject(false);
+            //must resolve over reject?
+            resolve(false);
           }
         })
       );
