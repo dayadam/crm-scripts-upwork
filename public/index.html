@@ -3,35 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
+    <!--     <link
       class="CSS-reset"
       rel="stylesheet"
       type="text/css"
       href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"
-    />
+    /> -->
     <title>Document</title>
   </head>
   <body>
-    <form>
-      <label for="lead-status">Select current lead status</label>
-      <select name="lead-status" id="lead-status">
-        <option value="Call Back">Call Back</option>
-        <option value="No Answer">No Answer</option>
-        <option value="Sold">Sold</option>
-        <option value="Fake">Fake</option>
-        <option value="Not Interested">Not Interested</option>
-        <option value="Disqualified">Disqualified</option>
-        <option value="Open">Open</option>
-        <option value="New Lead">New Lead</option>
-        <option value="Unposted">Unposted</option>
-      </select>
-      <button class="submit-button">Submit</button>
-    </form>
+    <div class="container">
+      <form>
+        <div class="row">
+          <label for="lead-status">Select current lead status</label>
+          <select name="lead-status" id="lead-status">
+            <option value="Call Back">Call Back</option>
+            <option value="No Answer">No Answer</option>
+            <option value="Sold">Sold</option>
+            <option value="Fake">Fake</option>
+            <option value="Not Interested">Not Interested</option>
+            <option value="Disqualified">Disqualified</option>
+            <option value="Open">Open</option>
+            <option value="New Lead">New Lead</option>
+            <option value="Unposted">Unposted</option>
+          </select>
+        </div>
+        <div class="form-group row">
+          <div class="col">
+            <h3>Select "Assigned To"</h3>
+            <div class="form-check row">
+              <div class="col">
+                <label class="form-check-label" for="Elite Medicare Advisors"
+                  >Elite Medicare Advisors
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="Elite Medicare Advisors"
+                    name="Assigned To"
+                /></label>
+              </div>
+              <div class="col"></div>
+            </div>
+            <div class="form-check row">
+              <div class="col">
+                <label class="form-check-label" for="Team Selling"
+                  >Team Selling
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="Team Selling"
+                    name="Assigned To"
+                /></label>
+              </div>
+              <div class="col"></div>
+            </div>
+            <div class="form-check row">
+              <div class="col">
+                <label class="form-check-label" for="herry patel test"
+                  >herry patel test
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="herry patel test"
+                    name="Assigned To"
+                /></label>
+              </div>
+              <div class="col"></div>
+            </div>
+          </div>
+        </div>
+        <button class="submit-button">Submit</button>
+      </form>
+    </div>
   </body>
   <script
     src="https://code.jquery.com/jquery-3.4.1.js"
     integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
     crossorigin="anonymous"
   ></script>
+  <!--   <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"
+  ></script>
+  <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+    crossorigin="anonymous"
+  /> -->
   <script type="text/javascript" src="client-side.js"></script>
 </html>
