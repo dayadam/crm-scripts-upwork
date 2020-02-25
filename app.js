@@ -10,6 +10,7 @@
 require("dotenv").config(); //.env should contain login info
 const puppeteer = require("puppeteer");
 const fs = require("fs");
+const express = require("express");
 const csv = require("fast-csv");
 const moment = require("moment");
 function now() {
@@ -25,6 +26,14 @@ function unique(ary) {
   }
   return u;
 }
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Define middleware here
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+// Static directory
+app.use(express.static("public"));
 
 //=====***** APP START *****=====
 //counter to switch between URL search results
@@ -39,9 +48,16 @@ const phoneNumberArray = [];
 csv
   .write([["new run", now()]], { includeEndRowDelimiter: true })
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
-  
-//crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
-crm().then(res => dial(phoneNumberArray));
+//crm().then(res => dial(phoneNumberArray));
+app.post("/api/run", function(req, res) {
+  console.log(req.body);
+  res.json(req.body);
+  //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
+  //crm().then(res => dial(phoneNumberArray));
+});
+app.listen(PORT, function() {
+  console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`);
+});
 //=====***** APP END *****=====
 
 //script to edit status and save phone number in CRM
