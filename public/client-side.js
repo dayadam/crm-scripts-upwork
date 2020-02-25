@@ -16,6 +16,7 @@ window.onload = function() {
     const dialLeadStatus = $("#dial-lead-status").val();
     const leadCreatedAt = $("#created-time").val();
     const leadDOB = $("#date-of-birth").val();
+    const URL = $("#url").val();
     function assignedTo(currentOrNew) {
       const assignedToNodes = $(
         `input:checked[name="${currentOrNew} Assigned To"]`
@@ -37,7 +38,8 @@ window.onload = function() {
       leadCreatedAt: leadCreatedAt,
       leadDOB: leadDOB,
       currentAssignedTo: currentAssignedTo,
-      newAssignedTo: newAssignedTo
+      newAssignedTo: newAssignedTo,
+      URL: URL
     };
     postNew(data);
   });
