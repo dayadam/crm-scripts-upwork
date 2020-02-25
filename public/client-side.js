@@ -1,9 +1,9 @@
 window.onload = function() {
-  function postNew(leadStatus, assignedTo) {
+  function postNew(data) {
     $.ajax({
       url: "/api/run",
       type: "POST",
-      data: { leadStatus: leadStatus, assignedTo: assignedTo }
+      data: data
     }).then(function(response) {
       console.log(response);
     });
@@ -11,14 +11,34 @@ window.onload = function() {
 
   $(".submit-button").click(function(event) {
     event.preventDefault();
-    const leadStatus = $("#lead-status").val();
-    const assignedToNodes = $("input:checked");
-    const assignedTo = [];
-    if (assignedToNodes.length !== 0) {
-      for (i = 0; i < assignedToNodes.length; i++) {
-        assignedTo.push(assignedToNodes[i].id);
+    const currentLeadStatus = $("#current-lead-status").val();
+    const crmLeadStatus = $("#crm-lead-status").val();
+    const dialLeadStatus = $("#dial-lead-status").val();
+    const leadCreatedAt = $("#created-time").val();
+    const leadDOB = $("#date-of-birth").val();
+    function assignedTo(currentOrNew) {
+      const assignedToNodes = $(
+        `input:checked[name="${currentOrNew} Assigned To"]`
+      );
+      const assignedTo = [];
+      if (assignedToNodes.length !== 0) {
+        for (i = 0; i < assignedToNodes.length; i++) {
+          assignedTo.push(assignedToNodes[i].id);
+        }
       }
+      return assignedTo;
     }
-    postNew(leadStatus, assignedTo);
+    const currentAssignedTo = assignedTo("current");
+    const newAssignedTo = assignedTo("new");
+    const data = {
+      currentLeadStatus: currentLeadStatus,
+      crmLeadStatus: crmLeadStatus,
+      dialLeadStatus: dialLeadStatus,
+      leadCreatedAt: leadCreatedAt,
+      leadDOB: leadDOB,
+      currentAssignedTo: currentAssignedTo,
+      newAssignedTo: newAssignedTo
+    };
+    postNew(data);
   });
 };

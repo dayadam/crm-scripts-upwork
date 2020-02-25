@@ -48,7 +48,7 @@ const phoneNumberArray = [];
 csv
   .write([["new run", now()]], { includeEndRowDelimiter: true })
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
-//crm().then(res => dial(phoneNumberArray));
+crm().then(res => dial(phoneNumberArray));
 app.post("/api/run", function(req, res) {
   console.log(req.body);
   res.json(req.body);
@@ -160,29 +160,50 @@ async function crm() {
         .click();
     }); */
 
-    //get record url
-    const record = await page.evaluate(() => {
-      //check if row exists based on search conditions
-      //force existence of row into boolean (concerned about if falsey (undefined))
-      const element = !!document.getElementById(`Leads_listView_row_1`);
-      //if row exists, return that row's url ending of that record so record.URL = that url ending
-      if (element) {
-        const URL = document
-          .getElementById(`Leads_listView_row_1`)
-          .getAttribute("data-recordurl");
-        //phoneNumber key not in use
-        const phoneNumber = document
-          .querySelector(
-            `#Leads_listView_row_1 > td:nth-child(8) > span.fieldValue > span`
-          )
-          .innerText.trim()
-          .slice(-10);
-        return { URL: URL, phoneNumber: phoneNumber };
-      } else {
-        //else, return false and record will be set to false
-        return element;
-      }
+    const rowResults = await page.evaluate(() => {
+      const ans = document.querySelectorAll(".listViewEntries");
+      return ans;
     });
+
+    //get record url
+    let record = {};
+    let elementFound = false;
+    const promises = [];
+    console.log(rowResults);
+    console.log(Object.keys(rowResults).length);
+    for (let i = 1; i < Object.keys(rowResults).length + 1; i++) {
+      console.log(i);
+      promises.push(
+        new Promise(async (resolve, reject) => {
+          console.log(promises);
+          const recordtemp = await page.evaluate((i) => {
+            //if row exists, return that row's url ending of that record so record.URL = that url ending
+            const URL = document
+              .getElementById(`Leads_listView_row_${i}`)
+              .getAttribute("data-recordurl");
+            const phoneNumber = document
+              .querySelector(
+                `#Leads_listView_row_${i} > td:nth-child(8) > span.fieldValue > span`
+              )
+              .innerText.trim()
+              .slice(-10);
+            return { URL: URL, phoneNumber: phoneNumber };
+          }, i);
+          if (!phoneNumberArray.includes(recordtemp.phoneNumber)) {
+            elementFound = true;
+            record.URL = recordtemp.URL;
+            record.phoneNumber = recordtemp.phoneNumber;
+            resolve(record);
+          } else {
+            reject(false);
+          }
+        })
+      );
+    }
+    await Promise.all(promises);
+    if (!elementFound) {
+      record = false;
+    }
     console.log("line 168");
     console.log(record);
 
