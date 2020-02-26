@@ -48,7 +48,10 @@ csv
 app.post("/api/run", function(req, res) {
   console.log(req.body);
   //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
-  crm(req).then(res => dial(phoneNumberArray));
+/*   crm(req).then(res => {
+    if (req.body.dialLeadStatus !== "No Change") dial(phoneNumberArray, req);
+    phoneNumberArray.length = 0;
+  }); */
   res.json(req.body);
 });
 app.listen(PORT, function() {
@@ -194,35 +197,38 @@ async function crm(req) {
       .write([[phoneNumber, now()]], { includeEndRowDelimiter: true })
       .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
     //===change lead status===
-    //click edit lead status button, hidden so must evaluate
-    await page.evaluate(() => {
-      document
-        .querySelector(
-          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction"
-        )
-        .click();
-    });
-    //change lead status select field to "no answer"
-    const disposSelector = "#field_Leads_leadstatus";
-    await page.waitForSelector(disposSelector);
-    const selectValInit = await page.evaluate(
-      () => document.querySelector("#field_Leads_leadstatus").value
-    );
-    console.log(selectValInit);
-    await page.select(disposSelector, req.body.crmLeadStatus);
-    const selectValNew = await page.evaluate(
-      () => document.querySelector("#field_Leads_leadstatus").value
-    );
-    console.log(selectValNew);
-    //submit change to lead status field
-    await page.evaluate(() => {
-      document
-        .querySelector(
-          "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave"
-        )
-        .click();
-    });
+    if (req.body.crmLeadStatus !== "No Change") {
+      //click edit lead status button, hidden so must evaluate
+      await page.evaluate(() => {
+        document
+          .querySelector(
+            "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.action > .editAction"
+          )
+          .click();
+      });
+      //change lead status select field to "no answer"
+      const disposSelector = "#field_Leads_leadstatus";
+      await page.waitForSelector(disposSelector);
+      const selectValInit = await page.evaluate(
+        () => document.querySelector("#field_Leads_leadstatus").value
+      );
+      console.log(selectValInit);
+      await page.select(disposSelector, req.body.crmLeadStatus);
+      const selectValNew = await page.evaluate(
+        () => document.querySelector("#field_Leads_leadstatus").value
+      );
+      console.log(selectValNew);
+      //submit change to lead status field
+      await page.evaluate(() => {
+        document
+          .querySelector(
+            "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(5) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave"
+          )
+          .click();
+      });
+    }
     //===end change lead status===
+    if (req.body.newAssignedTo) {
     return new Promise((resolve, reject) => {
       //after lead status has been changed, go back to search page and check to see if there's still leads that need changing
       checkLead().then(function(record) {
@@ -237,7 +243,7 @@ async function crm(req) {
 }
 
 //script to edit status in dialer
-async function dial(phoneNumberArray) {
+async function dial(phoneNumberArray, req) {
   console.log("inside dial");
   //remove repeated phone numbers from array
   const newPhoneNumberArray = unique(phoneNumberArray);
@@ -309,7 +315,7 @@ async function dial(phoneNumberArray) {
       );
       console.log(selectValInit);
       //set disposition to no answer
-      await page.select(disposSelector, "N");
+      await page.select(disposSelector, req.body.dialLeadStatus);
       const selectValNew = await page.evaluate(
         () =>
           document.querySelector(

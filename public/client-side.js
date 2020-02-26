@@ -11,13 +11,13 @@ window.onload = function() {
 
   $(".submit-button").click(function(event) {
     event.preventDefault();
-    const currentLeadStatus = $("#current-lead-status").val();
+    //const currentLeadStatus = $("#current-lead-status").val();
     const crmLeadStatus = $("#crm-lead-status").val();
     const dialLeadStatus = $("#dial-lead-status").val();
-    const leadCreatedAt = $("#created-time").val();
-    const leadDOB = $("#date-of-birth").val();
+    //const leadCreatedAt = $("#created-time").val();
+    //const leadDOB = $("#date-of-birth").val();
     const URL = $("#url").val();
-    function assignedTo(currentOrNew) {
+    /* function assignedTo(currentOrNew) {
       const assignedToNodes = $(
         `input:checked[name="${currentOrNew} Assigned To"]`
       );
@@ -30,14 +30,11 @@ window.onload = function() {
       return assignedTo;
     }
     const currentAssignedTo = assignedTo("current");
-    const newAssignedTo = assignedTo("new");
+    const newAssignedTo = assignedTo("new"); */
+    const newAssignedTo = $(`input:checked[name="new Assigned To"]`).val();
     const data = {
-      currentLeadStatus: currentLeadStatus,
       crmLeadStatus: crmLeadStatus,
       dialLeadStatus: dialLeadStatus,
-      leadCreatedAt: leadCreatedAt,
-      leadDOB: leadDOB,
-      currentAssignedTo: currentAssignedTo,
       newAssignedTo: newAssignedTo,
       URL: URL
     };
