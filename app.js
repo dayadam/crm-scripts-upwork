@@ -48,10 +48,10 @@ csv
 app.post("/api/run", function(req, res) {
   console.log(req.body);
   //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
-/*   crm(req).then(res => {
+  crm(req).then(res => {
     if (req.body.dialLeadStatus !== "No Change") dial(phoneNumberArray, req);
     phoneNumberArray.length = 0;
-  }); */
+  });
   res.json(req.body);
 });
 app.listen(PORT, function() {
@@ -229,6 +229,35 @@ async function crm(req) {
     }
     //===end change lead status===
     if (req.body.newAssignedTo) {
+      await page.evaluate(() => {
+        document
+          .querySelector(
+            "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(7) > td.fieldValue > div > span.action > a"
+          )
+          .click();
+      });
+      //change lead status select field to "no answer"
+      const assignedSelector = "#field_Leads_assigned_user_id";
+      await page.waitForSelector(assignedSelector);
+      const selectValInit = await page.evaluate(
+        () => document.querySelector("#field_Leads_assigned_user_id").value
+      );
+      console.log(selectValInit);
+      await page.select(assignedSelector, req.body.newAssignedTo);
+      const selectValNew = await page.evaluate(
+        () => document.querySelector("#field_Leads_assigned_user_id").value
+      );
+      console.log(selectValNew);
+      //submit change to lead status field
+      await page.evaluate(() => {
+        document
+          .querySelector(
+            "#detailView > div > div.left-block.col-lg-4 > div.summaryView > div.summaryViewFields > div > table > tbody > tr:nth-child(7) > td.fieldValue > div > span.edit.ajaxEdited > div > div.input-save-wrap > span.pointerCursorOnHover.input-group-addon.input-group-addon-save.inlineAjaxSave"
+          )
+          .click();
+      });
+
+    }
     return new Promise((resolve, reject) => {
       //after lead status has been changed, go back to search page and check to see if there's still leads that need changing
       checkLead().then(function(record) {

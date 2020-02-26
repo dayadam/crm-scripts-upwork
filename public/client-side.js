@@ -31,7 +31,10 @@ window.onload = function() {
     }
     const currentAssignedTo = assignedTo("current");
     const newAssignedTo = assignedTo("new"); */
-    const newAssignedTo = $(`input:checked[name="new Assigned To"]`).val();
+    if ($(`input:checked[name="new Assigned To"]`)[0]) {
+      var newAssignedTo = $(`input:checked[name="new Assigned To"]`)[0].title;
+    }
+
     const data = {
       crmLeadStatus: crmLeadStatus,
       dialLeadStatus: dialLeadStatus,
