@@ -20,7 +20,7 @@ function now() {
 function unique(ary) {
   // concat() with no args is a way to clone an array
   var u = ary.concat().sort();
-  for (var i = 1; i < u.length; ) {
+  for (var i = 1; i < u.length;) {
     if (u[i - 1] === u[i]) u.splice(i, 1);
     else i++;
   }
@@ -45,7 +45,7 @@ csv
   .write([["new run", now()]], { includeEndRowDelimiter: true })
   .pipe(fs.createWriteStream("./data.csv", { flags: "a" }));
 //crm().then(res => dial(phoneNumberArray));
-app.post("/api/run", function(req, res) {
+app.post("/api/run", function (req, res) {
   console.log(req.body);
   //crm() logs in --> checks search results --> recursively changes lead status --> checks search results --> changes lead status ...etc
   crm(req).then(res => {
@@ -54,7 +54,7 @@ app.post("/api/run", function(req, res) {
   });
   res.json(req.body);
 });
-app.listen(PORT, function() {
+app.listen(PORT, function () {
   console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`);
 });
 //=====***** APP END *****=====
@@ -81,7 +81,10 @@ async function crm(req) {
   for (let i = 0; i < userInputPlaceholder.length; i++) {
     await page.keyboard.press("Backspace");
   }
-  await page.keyboard.type(process.env.EMA_USERNAME);
+  console.log(process.env.EMA_USERNAME)
+  await page.keyboard.type(process.env.EMA_USERNAME).catch(err => {
+    console.log(err);
+  });
   //password
   const passwInputForm =
     "#loginFormDiv > form > div:nth-child(5) > div > .form-control";
@@ -262,7 +265,7 @@ async function crm(req) {
     }
     return new Promise((resolve, reject) => {
       //after lead status has been changed, go back to search page and check to see if there's still leads that need changing
-      checkLead().then(function(record) {
+      checkLead().then(function (record) {
         //if leads need changing, recursively run logic to change lead status again
         if (record) {
           resolve(runLogic(record));
